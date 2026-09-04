@@ -44,12 +44,15 @@ public class Product {
     @Column(nullable = false)
     private Integer stock;
 
+    @Column(nullable = false)
+    private String description;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
     private ProductStatus status = ProductStatus.ACTIVE;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = true)
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 }

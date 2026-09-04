@@ -25,6 +25,7 @@ public class ProductService {
         Product product = Product.builder()
                 .name(request.name())
                 .sku(request.sku())
+                .description(request.description())
                 .price(request.price())
                 .stock(request.stock())
                 .status(request.status() != null ? request.status() : ProductStatus.ACTIVE)
@@ -48,6 +49,7 @@ public class ProductService {
         Product product = getById(id);
         product.setName(request.name());
         product.setSku(request.sku());
+        product.setDescription(request.description());
         product.setPrice(request.price());
         product.setStock(request.stock());
         if (request.status() != null) {

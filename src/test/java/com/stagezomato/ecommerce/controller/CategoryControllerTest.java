@@ -119,6 +119,7 @@ class CategoryControllerTest {
                 .stock(10)
                 .status(ProductStatus.ACTIVE)
                 .category(category)
+                .description("A great novel")
                 .build();
         productRepository.save(product);
 

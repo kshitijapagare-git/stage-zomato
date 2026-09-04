@@ -2,9 +2,11 @@ package com.stagezomato.ecommerce.controller;
 
 import tools.jackson.databind.ObjectMapper;
 import com.stagezomato.ecommerce.dto.OrderRequest;
+import com.stagezomato.ecommerce.entity.Category;
 import com.stagezomato.ecommerce.entity.OrderStatus;
 import com.stagezomato.ecommerce.entity.Product;
 import com.stagezomato.ecommerce.entity.ProductStatus;
+import com.stagezomato.ecommerce.repository.CategoryRepository;
 import com.stagezomato.ecommerce.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,16 +40,26 @@ class OrderControllerTest {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
     private Long productId;
 
     @BeforeEach
     void setUp() {
+        Category category = categoryRepository.save(Category.builder()
+                .name("Keyboards")
+                .description("Keyboard category")
+                .build());
+
         Product product = Product.builder()
                 .name("Keyboard")
                 .sku("SKU-KB-01")
                 .price(new BigDecimal("49.99"))
                 .stock(200)
                 .status(ProductStatus.ACTIVE)
+                .category(category)
+                .description("A mechanical keyboard")
                 .build();
         productId = productRepository.save(product).getId();
     }

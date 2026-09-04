@@ -14,9 +14,7 @@ public record ProductRequest(
         @NotNull @DecimalMin(value = "0.0", inclusive = true) BigDecimal price,
         @NotNull @Min(0) Integer stock,
         ProductStatus status,
-        Long categoryId
+        @NotNull Long categoryId,
+        @NotBlank String description
 ) {
-    public ProductRequest(String name, String sku, BigDecimal price, Integer stock, ProductStatus status) {
-        this(name, sku, price, stock, status, null);
-    }
 }
