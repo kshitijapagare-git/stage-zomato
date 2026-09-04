@@ -3,6 +3,7 @@ package com.stagezomato.ecommerce.controller;
 import tools.jackson.databind.ObjectMapper;
 import com.stagezomato.ecommerce.dto.CartItemRequest;
 import com.stagezomato.ecommerce.entity.Cart;
+import com.stagezomato.ecommerce.entity.CartStatus;
 import com.stagezomato.ecommerce.entity.Category;
 import com.stagezomato.ecommerce.entity.Product;
 import com.stagezomato.ecommerce.entity.ProductStatus;
@@ -82,7 +83,10 @@ class CartItemControllerTest {
                 .build();
         secondProductId = productRepository.save(secondProduct).getId();
 
-        Cart cart = cartRepository.save(Cart.builder().build());
+        Cart cart = cartRepository.save(Cart.builder()
+                .customerName("Jane Doe")
+                .status(CartStatus.ACTIVE)
+                .build());
         cartId = cart.getId();
     }
 
