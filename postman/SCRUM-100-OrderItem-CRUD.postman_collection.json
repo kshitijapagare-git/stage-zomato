@@ -1,0 +1,222 @@
+{
+  "info": {
+    "_postman_id": "8f3a1e10-7701-4a11-9c77-000000000100",
+    "name": "SCRUM-100 - OrderItem CRUD",
+    "description": "As a user, I want to create, view, list, update, and delete OrderItem records linked to an Order and a Product, so that an order can contain multiple line items instead of a single product/quantity pair.\n\nBranch: brownfield/scrum-100-as-a-user-i-want-to-create-view-list-upd\nBase path: /order-items (note: not under /api, unlike other resources)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "categoryId", "value": "" },
+    { "key": "productId", "value": "" },
+    { "key": "orderId", "value": "" },
+    { "key": "orderItemId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "0a. Create Category (dependency)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('categoryId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Books\",\n  \"description\": \"Book category\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/categories", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories" ] }
+          }
+        },
+        {
+          "name": "0b. Create Product (dependency)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('productId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Novel\",\n  \"sku\": \"SKU-BOOK-01\",\n  \"price\": 9.99,\n  \"stock\": 10,\n  \"categoryId\": {{categoryId}},\n  \"description\": \"A novel\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/products", "host": [ "{{baseUrl}}" ], "path": [ "api", "products" ] }
+          }
+        },
+        {
+          "name": "0c. Create Order (dependency)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('orderId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Jane Doe\",\n  \"productId\": {{productId}},\n  \"quantity\": 1,\n  \"unitPrice\": 9.99\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/orders", "host": [ "{{baseUrl}}" ], "path": [ "api", "orders" ] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Create OrderItem",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.test('orderId matches', () => pm.expect(body.orderId).to.eql(parseInt(pm.collectionVariables.get('orderId'))));",
+              "pm.test('productId matches', () => pm.expect(body.productId).to.eql(parseInt(pm.collectionVariables.get('productId'))));",
+              "pm.collectionVariables.set('orderItemId', body.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": {{orderId}},\n  \"productId\": {{productId}},\n  \"quantity\": 2,\n  \"unitPrice\": 9.99\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/order-items", "host": [ "{{baseUrl}}" ], "path": [ "order-items" ] }
+      }
+    },
+    {
+      "name": "2. Get OrderItem By Id",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('quantity matches', () => pm.expect(pm.response.json().quantity).to.eql(2));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/order-items/{{orderItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "order-items", "{{orderItemId}}" ] }
+      }
+    },
+    {
+      "name": "3. List OrderItems",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 200', () => pm.response.to.have.status(200));" ] }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/order-items", "host": [ "{{baseUrl}}" ], "path": [ "order-items" ] }
+      }
+    },
+    {
+      "name": "4. Update OrderItem",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('quantity updated', () => pm.expect(pm.response.json().quantity).to.eql(5));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": {{orderId}},\n  \"productId\": {{productId}},\n  \"quantity\": 5,\n  \"unitPrice\": 8.50\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/order-items/{{orderItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "order-items", "{{orderItemId}}" ] }
+      }
+    },
+    {
+      "name": "5. Create Duplicate OrderItem (409)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 409', () => pm.response.to.have.status(409));" ] }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": {{orderId}},\n  \"productId\": {{productId}},\n  \"quantity\": 1,\n  \"unitPrice\": 9.99\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/order-items", "host": [ "{{baseUrl}}" ], "path": [ "order-items" ] }
+      }
+    },
+    {
+      "name": "6. Delete OrderItem",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 204', () => pm.response.to.have.status(204));" ] }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/order-items/{{orderItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "order-items", "{{orderItemId}}" ] }
+      }
+    },
+    {
+      "name": "7. Get Deleted OrderItem (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 404', () => pm.response.to.have.status(404));" ] }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/order-items/{{orderItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "order-items", "{{orderItemId}}" ] }
+      }
+    }
+  ]
+}

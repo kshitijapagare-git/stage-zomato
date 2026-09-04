@@ -1,0 +1,245 @@
+{
+  "info": {
+    "_postman_id": "8f3a1e10-7701-4a11-9c77-000000000102",
+    "name": "SCRUM-102 - Filter Orders By Status",
+    "description": "As a user, I want to filter the list of Orders by status, so that I can quickly find orders in a specific state.\n\nBranch: brownfield/scrum-102-as-a-user-i-want-to-filter-the-list-of-o\nBase path: /api/orders?status={PENDING|CONFIRMED|CANCELLED}",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "categoryId", "value": "" },
+    { "key": "productId", "value": "" },
+    { "key": "pendingOrderId", "value": "" },
+    { "key": "confirmedOrderId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "0a. Create Category (dependency)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('categoryId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Accessories\",\n  \"description\": \"Misc accessories\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/categories", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories" ] }
+          }
+        },
+        {
+          "name": "0b. Create Product (dependency)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('productId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"USB Cable\",\n  \"sku\": \"SKU-USB-01\",\n  \"price\": 5.99,\n  \"stock\": 500,\n  \"categoryId\": {{categoryId}},\n  \"description\": \"A USB cable\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/products", "host": [ "{{baseUrl}}" ], "path": [ "api", "products" ] }
+          }
+        },
+        {
+          "name": "0c. Create Order #1 (defaults to PENDING)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Default status is PENDING', () => pm.expect(pm.response.json().status).to.eql('PENDING'));",
+                  "pm.collectionVariables.set('pendingOrderId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Alice\",\n  \"productId\": {{productId}},\n  \"quantity\": 1,\n  \"unitPrice\": 5.99\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/orders", "host": [ "{{baseUrl}}" ], "path": [ "api", "orders" ] }
+          }
+        },
+        {
+          "name": "0d. Create Order #2 (CONFIRMED)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('confirmedOrderId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Bob\",\n  \"productId\": {{productId}},\n  \"quantity\": 2,\n  \"unitPrice\": 5.99,\n  \"status\": \"CONFIRMED\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/orders", "host": [ "{{baseUrl}}" ], "path": [ "api", "orders" ] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. List All Orders (no filter)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Contains both orders', () => {",
+              "  const ids = pm.response.json().map(o => o.id);",
+              "  pm.expect(ids).to.include(parseInt(pm.collectionVariables.get('pendingOrderId')));",
+              "  pm.expect(ids).to.include(parseInt(pm.collectionVariables.get('confirmedOrderId')));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/orders", "host": [ "{{baseUrl}}" ], "path": [ "api", "orders" ] }
+      }
+    },
+    {
+      "name": "2. Filter Orders by status=PENDING",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Only PENDING orders returned', () => {",
+              "  const body = pm.response.json();",
+              "  body.forEach(o => pm.expect(o.status).to.eql('PENDING'));",
+              "  const ids = body.map(o => o.id);",
+              "  pm.expect(ids).to.include(parseInt(pm.collectionVariables.get('pendingOrderId')));",
+              "  pm.expect(ids).to.not.include(parseInt(pm.collectionVariables.get('confirmedOrderId')));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/orders?status=PENDING",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "api", "orders" ],
+          "query": [ { "key": "status", "value": "PENDING" } ]
+        }
+      }
+    },
+    {
+      "name": "3. Filter Orders by status=CONFIRMED",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Only CONFIRMED orders returned', () => {",
+              "  const body = pm.response.json();",
+              "  body.forEach(o => pm.expect(o.status).to.eql('CONFIRMED'));",
+              "  const ids = body.map(o => o.id);",
+              "  pm.expect(ids).to.include(parseInt(pm.collectionVariables.get('confirmedOrderId')));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/orders?status=CONFIRMED",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "api", "orders" ],
+          "query": [ { "key": "status", "value": "CONFIRMED" } ]
+        }
+      }
+    },
+    {
+      "name": "4. Filter Orders by status=CANCELLED (empty result)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Empty array', () => pm.expect(pm.response.json()).to.be.an('array').that.is.empty);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/orders?status=CANCELLED",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "api", "orders" ],
+          "query": [ { "key": "status", "value": "CANCELLED" } ]
+        }
+      }
+    },
+    {
+      "name": "5. Filter Orders by invalid status (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 400', () => pm.response.to.have.status(400));" ] }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/orders?status=NOT_A_REAL_STATUS",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "api", "orders" ],
+          "query": [ { "key": "status", "value": "NOT_A_REAL_STATUS" } ]
+        }
+      }
+    }
+  ]
+}

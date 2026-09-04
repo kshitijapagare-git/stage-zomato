@@ -1,0 +1,167 @@
+{
+  "info": {
+    "_postman_id": "8f3a1e10-7701-4a11-9c77-000000000077",
+    "name": "SCRUM-77 - Category CRUD",
+    "description": "As a user, I want to create, view, list, update, and delete Category records, so that products can be organized into browsable groups.\n\nBranch: brownfield/scrum-77-as-a-user-i-want-to-create-view-list-upd\nBase path: /api/categories",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "categoryId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Create Category",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.test('Response has id', () => pm.expect(body.id).to.exist);",
+              "pm.collectionVariables.set('categoryId', body.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Electronics\",\n  \"description\": \"Electronic devices\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/categories", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories" ] }
+      }
+    },
+    {
+      "name": "2. Get Category By Id",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Name matches', () => pm.expect(pm.response.json().name).to.eql('Electronics'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/categories/{{categoryId}}", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories", "{{categoryId}}" ] }
+      }
+    },
+    {
+      "name": "3. List Categories (paginated)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has content array', () => pm.expect(pm.response.json().content).to.be.an('array'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/categories?page=0&size=10",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "api", "categories" ],
+          "query": [ { "key": "page", "value": "0" }, { "key": "size", "value": "10" } ]
+        }
+      }
+    },
+    {
+      "name": "4. Update Category",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Name updated', () => pm.expect(pm.response.json().name).to.eql('Consumer Electronics'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Consumer Electronics\",\n  \"description\": \"Updated description\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/categories/{{categoryId}}", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories", "{{categoryId}}" ] }
+      }
+    },
+    {
+      "name": "5. Create Category - Blank Name (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 400', () => pm.response.to.have.status(400));" ] }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"\",\n  \"description\": \"Some description\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/categories", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories" ] }
+      }
+    },
+    {
+      "name": "6. Create Category - Duplicate Name (409)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 409', () => pm.response.to.have.status(409));" ] }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Consumer Electronics\",\n  \"description\": \"Duplicate attempt\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/categories", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories" ] }
+      }
+    },
+    {
+      "name": "7. Delete Category",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 204', () => pm.response.to.have.status(204));" ] }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/categories/{{categoryId}}", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories", "{{categoryId}}" ] }
+      }
+    },
+    {
+      "name": "8. Get Deleted Category (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 404', () => pm.response.to.have.status(404));" ] }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/categories/{{categoryId}}", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories", "{{categoryId}}" ] }
+      }
+    }
+  ]
+}

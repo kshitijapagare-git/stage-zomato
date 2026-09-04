@@ -1,0 +1,188 @@
+{
+  "info": {
+    "_postman_id": "8f3a1e10-7701-4a11-9c77-000000000101",
+    "name": "SCRUM-101 - CartItem CRUD",
+    "description": "As a user, I want to create, view, list, update, and delete CartItem records linked to a Cart and a Product, so that a cart can contain multiple line items instead of a single product/quantity pair.\n\nBranch: brownfield/scrum-101-as-a-user-i-want-to-create-view-list-upd\nBase path: /carts/{cartId}/items\n\nIMPORTANT MANUAL STEP: there is no REST endpoint to create a Cart (no CartController exists in this branch). Before running this collection, open the H2 console at {{baseUrl}}/h2-console (JDBC URL: jdbc:h2:mem:ecommercedb, user: sa, blank password) and run:\n  INSERT INTO carts (id) VALUES (1);\nThe default cartId variable below assumes this row exists.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "categoryId", "value": "" },
+    { "key": "productId", "value": "" },
+    { "key": "cartId", "value": "1", "description": "Must be manually inserted via H2 console first - see collection description" },
+    { "key": "cartItemId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "0a. Create Category (dependency)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('categoryId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Keyboards\",\n  \"description\": \"Keyboard category\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/categories", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories" ] }
+          }
+        },
+        {
+          "name": "0b. Create Product (dependency)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('productId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Keyboard\",\n  \"sku\": \"SKU-KB-01\",\n  \"price\": 49.99,\n  \"stock\": 200,\n  \"categoryId\": {{categoryId}},\n  \"description\": \"A mechanical keyboard\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/products", "host": [ "{{baseUrl}}" ], "path": [ "api", "products" ] }
+          }
+        },
+        {
+          "name": "0c. NOTE - Cart must exist (manual H2 insert)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/h2-console", "host": [ "{{baseUrl}}" ], "path": [ "h2-console" ] },
+            "description": "No REST endpoint creates Cart records. Open this URL in a browser, connect with JDBC URL jdbc:h2:mem:ecommercedb / user sa / blank password, and run:\nINSERT INTO carts (id) VALUES (1);\nbefore executing the CartItem requests below."
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Create CartItem",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.test('productId matches', () => pm.expect(body.productId).to.eql(parseInt(pm.collectionVariables.get('productId'))));",
+              "pm.collectionVariables.set('cartItemId', body.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cartId\": {{cartId}},\n  \"productId\": {{productId}},\n  \"quantity\": 2\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}/items", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}", "items" ] }
+      }
+    },
+    {
+      "name": "2. Get CartItem By Id",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('quantity matches', () => pm.expect(pm.response.json().quantity).to.eql(2));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}/items/{{cartItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}", "items", "{{cartItemId}}" ] }
+      }
+    },
+    {
+      "name": "3. List CartItems",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 200', () => pm.response.to.have.status(200));" ] }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}/items", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}", "items" ] }
+      }
+    },
+    {
+      "name": "4. Update CartItem",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('quantity updated', () => pm.expect(pm.response.json().quantity).to.eql(4));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cartId\": {{cartId}},\n  \"productId\": {{productId}},\n  \"quantity\": 4\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}/items/{{cartItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}", "items", "{{cartItemId}}" ] }
+      }
+    },
+    {
+      "name": "5. Delete CartItem",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 204', () => pm.response.to.have.status(204));" ] }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}/items/{{cartItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}", "items", "{{cartItemId}}" ] }
+      }
+    },
+    {
+      "name": "6. Get Deleted CartItem (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 404', () => pm.response.to.have.status(404));" ] }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}/items/{{cartItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}", "items", "{{cartItemId}}" ] }
+      }
+    }
+  ]
+}

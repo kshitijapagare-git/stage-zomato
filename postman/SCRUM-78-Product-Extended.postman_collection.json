@@ -1,0 +1,208 @@
+{
+  "info": {
+    "_postman_id": "8f3a1e10-7701-4a11-9c77-000000000078",
+    "name": "SCRUM-78 - Product Extended (categoryId + description)",
+    "description": "As a system, I want Product extended with a categoryId relation and description, so that products can be classified and described in more detail.\n\nBranch: brownfield/scrum-78-as-a-system-i-want-product-extended-with\nBase path: /api/products (categoryId and description are now required fields)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "categoryId", "value": "" },
+    { "key": "productId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "0. Create Category (dependency)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('categoryId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Peripherals\",\n  \"description\": \"Peripheral devices\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/categories", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories" ] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Create Product (with categoryId + description)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.test('categoryId present in response', () => pm.expect(body.categoryId).to.eql(parseInt(pm.collectionVariables.get('categoryId'))));",
+              "pm.test('description present in response', () => pm.expect(body.description).to.eql('A wireless mouse'));",
+              "pm.collectionVariables.set('productId', body.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Wireless Mouse\",\n  \"sku\": \"SKU-001\",\n  \"price\": 19.99,\n  \"stock\": 100,\n  \"status\": \"ACTIVE\",\n  \"categoryId\": {{categoryId}},\n  \"description\": \"A wireless mouse\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/products", "host": [ "{{baseUrl}}" ], "path": [ "api", "products" ] }
+      }
+    },
+    {
+      "name": "2. Get Product By Id",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('sku matches', () => pm.expect(pm.response.json().sku).to.eql('SKU-001'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/products/{{productId}}", "host": [ "{{baseUrl}}" ], "path": [ "api", "products", "{{productId}}" ] }
+      }
+    },
+    {
+      "name": "3. List Products",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 200', () => pm.response.to.have.status(200));" ] }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/products", "host": [ "{{baseUrl}}" ], "path": [ "api", "products" ] }
+      }
+    },
+    {
+      "name": "4. Update Product",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('description updated', () => pm.expect(pm.response.json().description).to.eql('An upgraded wireless mouse'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Wireless Mouse Pro\",\n  \"sku\": \"SKU-001\",\n  \"price\": 29.99,\n  \"stock\": 50,\n  \"status\": \"ACTIVE\",\n  \"categoryId\": {{categoryId}},\n  \"description\": \"An upgraded wireless mouse\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/products/{{productId}}", "host": [ "{{baseUrl}}" ], "path": [ "api", "products", "{{productId}}" ] }
+      }
+    },
+    {
+      "name": "5. Create Product - Missing categoryId (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 400', () => pm.response.to.have.status(400));" ] }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"No Category Product\",\n  \"sku\": \"SKU-002\",\n  \"price\": 9.99,\n  \"stock\": 5,\n  \"description\": \"Missing categoryId\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/products", "host": [ "{{baseUrl}}" ], "path": [ "api", "products" ] }
+      }
+    },
+    {
+      "name": "6. Create Product - Blank Description (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 400', () => pm.response.to.have.status(400));" ] }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Trackpad\",\n  \"sku\": \"SKU-004\",\n  \"price\": 15.00,\n  \"stock\": 5,\n  \"categoryId\": {{categoryId}},\n  \"description\": \"\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/products", "host": [ "{{baseUrl}}" ], "path": [ "api", "products" ] }
+      }
+    },
+    {
+      "name": "7. Create Product - Unknown categoryId (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 404', () => pm.response.to.have.status(404));" ] }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Mechanical Keyboard\",\n  \"sku\": \"SKU-003\",\n  \"price\": 59.99,\n  \"stock\": 20,\n  \"categoryId\": 999999,\n  \"description\": \"A mechanical keyboard\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/products", "host": [ "{{baseUrl}}" ], "path": [ "api", "products" ] }
+      }
+    },
+    {
+      "name": "8. Delete Product",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 204', () => pm.response.to.have.status(204));" ] }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/products/{{productId}}", "host": [ "{{baseUrl}}" ], "path": [ "api", "products", "{{productId}}" ] }
+      }
+    },
+    {
+      "name": "9. Get Deleted Product (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 404', () => pm.response.to.have.status(404));" ] }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/products/{{productId}}", "host": [ "{{baseUrl}}" ], "path": [ "api", "products", "{{productId}}" ] }
+      }
+    }
+  ]
+}
