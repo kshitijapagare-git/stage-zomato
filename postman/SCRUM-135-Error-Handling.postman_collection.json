@@ -1,0 +1,45 @@
+{
+  "info": {
+    "_postman_id": "8f3a1e10-7701-4a11-9c77-000000000135",
+    "name": "SCRUM-135 - Consistent Error Handling",
+    "description": "As a developer, I want a catch-all exception handler that converts any unexpected server-side exception into the application's consistent JSON error response, so that API consumers never see Spring Boot's bare default error page and every endpoint fails predictably.\n\nBranch: brownfield/scrum-135-as-a-developer-i-want-a-catchall-excepti\n\nThis is a cross-cutting fix (GlobalExceptionHandler), not tied to one resource. The request below triggers a genuinely unhandled exception (malformed JSON body) to prove any endpoint now returns {timestamp, status, error, message} instead of Spring's bare {timestamp, status, error, path} default.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" }
+  ],
+  "item": [
+    {
+      "name": "1. Malformed JSON body returns consistent 500 shape",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 500', () => pm.response.to.have.status(500));",
+              "const body = pm.response.json();",
+              "pm.test('Body has consistent shape (message, not path)', () => {",
+              "    pm.expect(body).to.have.property('timestamp');",
+              "    pm.expect(body).to.have.property('status', 500);",
+              "    pm.expect(body).to.have.property('error', 'Internal Server Error');",
+              "    pm.expect(body).to.have.property('message', 'An unexpected error occurred');",
+              "    pm.expect(body).to.not.have.property('path');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Broken\",\n  \"description\":"
+        },
+        "url": { "raw": "{{baseUrl}}/api/categories", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories" ] },
+        "description": "Deliberately truncated/invalid JSON to trigger an exception type with no specific handler, exercising the GlobalExceptionHandler catch-all."
+      }
+    }
+  ]
+}

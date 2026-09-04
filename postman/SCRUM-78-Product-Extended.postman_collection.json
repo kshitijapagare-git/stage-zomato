@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "8f3a1e10-7701-4a11-9c77-000000000078",
     "name": "SCRUM-78 - Product Extended (categoryId + description)",
-    "description": "As a system, I want Product extended with a categoryId relation and description, so that products can be classified and described in more detail.\n\nBranch: brownfield/scrum-78-as-a-system-i-want-product-extended-with\nBase path: /api/products (categoryId and description are now required fields)",
+    "description": "As a system, I want Product extended with a categoryId relation and description, so that products can be classified and described in more detail.\n\nBranch: brownfield/scrum-78-as-a-system-i-want-product-extended-with (requires SCRUM-134 merged for duplicate-sku handling)\nBase path: /api/products (categoryId and description are now required fields)\n\nSCRUM-134: duplicate sku on create or update now returns 409 Conflict instead of an unhandled 500.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -16,6 +16,10 @@
     },
     {
       "key": "productId",
+      "value": ""
+    },
+    {
+      "key": "secondProductId",
       "value": ""
     }
   ],
@@ -324,7 +328,126 @@
       }
     },
     {
-      "name": "8. Delete Product",
+      "name": "8. Create Product - Duplicate SKU (409)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 409', () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Duplicate SKU Product\",\n  \"sku\": \"SKU-001\",\n  \"price\": 9.99,\n  \"stock\": 5,\n  \"categoryId\": {{categoryId}},\n  \"description\": \"Should conflict on sku\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/products",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "products"
+          ]
+        }
+      }
+    },
+    {
+      "name": "9. Create Second Product (for update-conflict test)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+              "    pm.collectionVariables.set('secondProductId', body.id);",
+              "} else {",
+              "    console.error('Failed to capture secondProductId - response: ' + JSON.stringify(body));",
+              "    pm.test('secondProductId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Second Product\",\n  \"sku\": \"SKU-005\",\n  \"price\": 9.99,\n  \"stock\": 5,\n  \"categoryId\": {{categoryId}},\n  \"description\": \"Another product\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/products",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "products"
+          ]
+        }
+      }
+    },
+    {
+      "name": "10. Update Second Product - Duplicate SKU (409)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 409', () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Second Product\",\n  \"sku\": \"SKU-001\",\n  \"price\": 9.99,\n  \"stock\": 5,\n  \"categoryId\": {{categoryId}},\n  \"description\": \"Attempting to steal Product 1's sku\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/products/{{secondProductId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "products",
+            "{{secondProductId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "11. Delete Product",
       "event": [
         {
           "listen": "test",
@@ -353,7 +476,7 @@
       }
     },
     {
-      "name": "9. Get Deleted Product (404)",
+      "name": "12. Get Deleted Product (404)",
       "event": [
         {
           "listen": "test",

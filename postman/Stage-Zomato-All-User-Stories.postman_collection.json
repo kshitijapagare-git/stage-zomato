@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "8f3a1e10-7701-4a11-9c77-00000000ffff",
     "name": "Stage Zomato - Ecommerce Backend (All User Stories)",
-    "description": "All brownfield user story collections in one place, grouped as folders:\n- SCRUM-77: Category CRUD\n- SCRUM-78: Product extended (categoryId + description)\n- SCRUM-100: OrderItem CRUD\n- SCRUM-101: CartItem CRUD (now uses SCRUM-133's Cart endpoint instead of manual H2 insert)\n- SCRUM-102: Filter Orders by status\n- SCRUM-133: Cart CRUD (closes the Cart-creation gap SCRUM-101 depended on)\n\nEach folder is self-contained with its own Setup sub-folder, so it can be run on its own or as part of the full collection run.",
+    "description": "All brownfield user story collections in one place, grouped as folders:\n- SCRUM-77: Category CRUD\n- SCRUM-78: Product extended (categoryId + description) + SCRUM-134 duplicate-sku 409 tests\n- SCRUM-100: OrderItem CRUD\n- SCRUM-101: CartItem CRUD (uses SCRUM-133's Cart endpoint)\n- SCRUM-102: Filter Orders by status\n- SCRUM-133: Cart CRUD\n- SCRUM-135: Consistent error handling (catch-all exception handler)\n\nEach folder is self-contained with its own Setup sub-folder where needed, so it can be run on its own or as part of the full collection run.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -16,6 +16,10 @@
     },
     {
       "key": "productId",
+      "value": ""
+    },
+    {
+      "key": "secondProductId",
       "value": ""
     },
     {
@@ -337,7 +341,7 @@
     },
     {
       "name": "SCRUM-78 - Product Extended (categoryId + description)",
-      "description": "As a system, I want Product extended with a categoryId relation and description, so that products can be classified and described in more detail.\n\nBranch: brownfield/scrum-78-as-a-system-i-want-product-extended-with\nBase path: /api/products (categoryId and description are now required fields)",
+      "description": "As a system, I want Product extended with a categoryId relation and description, so that products can be classified and described in more detail.\n\nBranch: brownfield/scrum-78-as-a-system-i-want-product-extended-with (requires SCRUM-134 merged for duplicate-sku handling)\nBase path: /api/products (categoryId and description are now required fields)\n\nSCRUM-134: duplicate sku on create or update now returns 409 Conflict instead of an unhandled 500.",
       "item": [
         {
           "name": "Setup",
@@ -643,7 +647,126 @@
           }
         },
         {
-          "name": "8. Delete Product",
+          "name": "8. Create Product - Duplicate SKU (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Duplicate SKU Product\",\n  \"sku\": \"SKU-001\",\n  \"price\": 9.99,\n  \"stock\": 5,\n  \"categoryId\": {{categoryId}},\n  \"description\": \"Should conflict on sku\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            }
+          }
+        },
+        {
+          "name": "9. Create Second Product (for update-conflict test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('secondProductId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture secondProductId - response: ' + JSON.stringify(body));",
+                  "    pm.test('secondProductId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Second Product\",\n  \"sku\": \"SKU-005\",\n  \"price\": 9.99,\n  \"stock\": 5,\n  \"categoryId\": {{categoryId}},\n  \"description\": \"Another product\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            }
+          }
+        },
+        {
+          "name": "10. Update Second Product - Duplicate SKU (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Second Product\",\n  \"sku\": \"SKU-001\",\n  \"price\": 9.99,\n  \"stock\": 5,\n  \"categoryId\": {{categoryId}},\n  \"description\": \"Attempting to steal Product 1's sku\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{secondProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{secondProductId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "11. Delete Product",
           "event": [
             {
               "listen": "test",
@@ -672,7 +795,7 @@
           }
         },
         {
-          "name": "9. Get Deleted Product (404)",
+          "name": "12. Get Deleted Product (404)",
           "event": [
             {
               "listen": "test",
@@ -2092,6 +2215,58 @@
                 "{{cartId}}"
               ]
             }
+          }
+        }
+      ]
+    },
+    {
+      "name": "SCRUM-135 - Consistent Error Handling",
+      "description": "As a developer, I want a catch-all exception handler that converts any unexpected server-side exception into the application's consistent JSON error response, so that API consumers never see Spring Boot's bare default error page and every endpoint fails predictably.\n\nBranch: brownfield/scrum-135-as-a-developer-i-want-a-catchall-excepti\n\nThis is a cross-cutting fix (GlobalExceptionHandler), not tied to one resource. The request below triggers a genuinely unhandled exception (malformed JSON body) to prove any endpoint now returns {timestamp, status, error, message} instead of Spring's bare {timestamp, status, error, path} default.",
+      "item": [
+        {
+          "name": "1. Malformed JSON body returns consistent 500 shape",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 500', () => pm.response.to.have.status(500));",
+                  "const body = pm.response.json();",
+                  "pm.test('Body has consistent shape (message, not path)', () => {",
+                  "    pm.expect(body).to.have.property('timestamp');",
+                  "    pm.expect(body).to.have.property('status', 500);",
+                  "    pm.expect(body).to.have.property('error', 'Internal Server Error');",
+                  "    pm.expect(body).to.have.property('message', 'An unexpected error occurred');",
+                  "    pm.expect(body).to.not.have.property('path');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Broken\",\n  \"description\":"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            },
+            "description": "Deliberately truncated/invalid JSON to trigger an exception type with no specific handler, exercising the GlobalExceptionHandler catch-all."
           }
         }
       ]
