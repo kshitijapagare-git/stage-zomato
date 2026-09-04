@@ -115,4 +115,39 @@ class ProductControllerTest {
                         .content(objectMapper.writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void createProductWithDuplicateSkuReturnsConflict() throws Exception {
+        mockMvc.perform(post("/api/products")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(sampleRequest())))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/api/products")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(sampleRequest())))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void updateProductWithAnotherProductsSkuReturnsConflict() throws Exception {
+        mockMvc.perform(post("/api/products")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(sampleRequest())))
+                .andExpect(status().isCreated());
+
+        ProductRequest secondRequest = new ProductRequest("Second Product", "SKU-005", new BigDecimal("9.99"), 5, null, categoryId, "Another product");
+        String secondResponse = mockMvc.perform(post("/api/products")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(secondRequest)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Long secondId = objectMapper.readTree(secondResponse).get("id").asLong();
+
+        ProductRequest conflictingUpdate = new ProductRequest("Second Product", "SKU-001", new BigDecimal("9.99"), 5, null, categoryId, "Another product");
+        mockMvc.perform(put("/api/products/{id}", secondId)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(conflictingUpdate)))
+                .andExpect(status().isConflict());
+    }
 }

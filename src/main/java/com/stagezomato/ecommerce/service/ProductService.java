@@ -4,6 +4,7 @@ import com.stagezomato.ecommerce.dto.ProductRequest;
 import com.stagezomato.ecommerce.entity.Category;
 import com.stagezomato.ecommerce.entity.Product;
 import com.stagezomato.ecommerce.entity.ProductStatus;
+import com.stagezomato.ecommerce.exception.ProductConflictException;
 import com.stagezomato.ecommerce.exception.ResourceNotFoundException;
 import com.stagezomato.ecommerce.repository.CategoryRepository;
 import com.stagezomato.ecommerce.repository.ProductRepository;
@@ -22,6 +23,9 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
 
     public Product create(ProductRequest request) {
+        if (productRepository.existsBySku(request.sku())) {
+            throw new ProductConflictException("Product already exists with sku: " + request.sku());
+        }
         Product product = Product.builder()
                 .name(request.name())
                 .sku(request.sku())
@@ -47,6 +51,9 @@ public class ProductService {
 
     public Product update(Long id, ProductRequest request) {
         Product product = getById(id);
+        if (productRepository.existsBySkuAndIdNot(request.sku(), id)) {
+            throw new ProductConflictException("Product already exists with sku: " + request.sku());
+        }
         product.setName(request.name());
         product.setSku(request.sku());
         product.setDescription(request.description());
