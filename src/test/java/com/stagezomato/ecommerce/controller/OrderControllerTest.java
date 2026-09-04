@@ -110,4 +110,53 @@ class OrderControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void getAllOrdersFilteredByStatusReturnsOnlyMatchingOrders() throws Exception {
+        OrderRequest pendingRequest = new OrderRequest("Pending Customer", productId, 1, new BigDecimal("49.99"), null);
+        mockMvc.perform(post("/api/orders")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(pendingRequest)))
+                .andExpect(status().isCreated());
+
+        OrderRequest confirmedRequest = new OrderRequest("Confirmed Customer", productId, 1, new BigDecimal("49.99"), OrderStatus.CONFIRMED);
+        String confirmedResponse = mockMvc.perform(post("/api/orders")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(confirmedRequest)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        Long confirmedOrderId = objectMapper.readTree(confirmedResponse).get("id").asLong();
+
+        mockMvc.perform(get("/api/orders").param("status", "CONFIRMED"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", is(1)))
+                .andExpect(jsonPath("$[0].id", is(confirmedOrderId.intValue())))
+                .andExpect(jsonPath("$[0].status", is("CONFIRMED")));
+    }
+
+    @Test
+    void getAllOrdersWithInvalidStatusReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/orders").param("status", "NOT_A_STATUS"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getAllOrdersWithoutStatusParamReturnsAllOrders() throws Exception {
+        OrderRequest pendingRequest = new OrderRequest("Pending Customer", productId, 1, new BigDecimal("49.99"), null);
+        mockMvc.perform(post("/api/orders")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(pendingRequest)))
+                .andExpect(status().isCreated());
+
+        OrderRequest confirmedRequest = new OrderRequest("Confirmed Customer", productId, 1, new BigDecimal("49.99"), OrderStatus.CONFIRMED);
+        mockMvc.perform(post("/api/orders")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(confirmedRequest)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/orders"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", is(2)));
+    }
 }

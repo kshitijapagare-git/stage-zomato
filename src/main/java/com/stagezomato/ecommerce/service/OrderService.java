@@ -46,6 +46,14 @@ public class OrderService {
         return orderRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
+    public List<Order> getAll(OrderStatus status) {
+        if (status == null) {
+            return orderRepository.findAll();
+        }
+        return orderRepository.findByStatus(status);
+    }
+
     public Order update(Long id, OrderRequest request) {
         Order order = getById(id);
 

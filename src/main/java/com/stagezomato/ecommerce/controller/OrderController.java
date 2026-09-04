@@ -3,6 +3,7 @@ package com.stagezomato.ecommerce.controller;
 import com.stagezomato.ecommerce.dto.OrderRequest;
 import com.stagezomato.ecommerce.dto.OrderResponse;
 import com.stagezomato.ecommerce.entity.Order;
+import com.stagezomato.ecommerce.entity.OrderStatus;
 import com.stagezomato.ecommerce.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -38,8 +40,9 @@ public class OrderController {
     }
 
     @GetMapping
-    public List<OrderResponse> getAll() {
-        return orderService.getAll().stream().map(OrderResponse::from).toList();
+    public List<OrderResponse> getAll(@RequestParam(required = false) String status) {
+        OrderStatus orderStatus = status != null ? OrderStatus.valueOf(status) : null;
+        return orderService.getAll(orderStatus).stream().map(OrderResponse::from).toList();
     }
 
     @PutMapping("/{id}")
