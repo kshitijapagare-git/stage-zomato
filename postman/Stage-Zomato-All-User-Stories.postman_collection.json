@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "8f3a1e10-7701-4a11-9c77-00000000ffff",
     "name": "Stage Zomato - Ecommerce Backend (All User Stories)",
-    "description": "All Phase 0/1 brownfield user story collections in one place, grouped as folders:\n- SCRUM-77: Category CRUD\n- SCRUM-78: Product extended (categoryId + description)\n- SCRUM-100: OrderItem CRUD\n- SCRUM-101: CartItem CRUD\n- SCRUM-102: Filter Orders by status\n\nEach folder is self-contained with its own Setup sub-folder, so it can be run on its own or as part of the full collection run.",
+    "description": "All brownfield user story collections in one place, grouped as folders:\n- SCRUM-77: Category CRUD\n- SCRUM-78: Product extended (categoryId + description)\n- SCRUM-100: OrderItem CRUD\n- SCRUM-101: CartItem CRUD (now uses SCRUM-133's Cart endpoint instead of manual H2 insert)\n- SCRUM-102: Filter Orders by status\n- SCRUM-133: Cart CRUD (closes the Cart-creation gap SCRUM-101 depended on)\n\nEach folder is self-contained with its own Setup sub-folder, so it can be run on its own or as part of the full collection run.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -28,8 +28,7 @@
     },
     {
       "key": "cartId",
-      "value": "1",
-      "description": "Must be manually inserted via H2 console first - see collection description"
+      "value": ""
     },
     {
       "key": "cartItemId",
@@ -60,7 +59,12 @@
                   "pm.test('Status is 201', () => pm.response.to.have.status(201));",
                   "const body = pm.response.json();",
                   "pm.test('Response has id', () => pm.expect(body.id).to.exist);",
-                  "pm.collectionVariables.set('categoryId', body.id);"
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('categoryId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture categoryId - response: ' + JSON.stringify(body));",
+                  "    pm.test('categoryId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
                 ]
               }
             }
@@ -347,7 +351,13 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                      "pm.collectionVariables.set('categoryId', pm.response.json().id);"
+                      "const body = pm.response.json();",
+                      "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                      "    pm.collectionVariables.set('categoryId', body.id);",
+                      "} else {",
+                      "    console.error('Failed to capture categoryId - response: ' + JSON.stringify(body));",
+                      "    pm.test('categoryId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                      "}"
                     ]
                   }
                 }
@@ -390,7 +400,12 @@
                   "const body = pm.response.json();",
                   "pm.test('categoryId present in response', () => pm.expect(body.categoryId).to.eql(parseInt(pm.collectionVariables.get('categoryId'))));",
                   "pm.test('description present in response', () => pm.expect(body.description).to.eql('A wireless mouse'));",
-                  "pm.collectionVariables.set('productId', body.id);"
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('productId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture productId - response: ' + JSON.stringify(body));",
+                  "    pm.test('productId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
                 ]
               }
             }
@@ -703,7 +718,13 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                      "pm.collectionVariables.set('categoryId', pm.response.json().id);"
+                      "const body = pm.response.json();",
+                      "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                      "    pm.collectionVariables.set('categoryId', body.id);",
+                      "} else {",
+                      "    console.error('Failed to capture categoryId - response: ' + JSON.stringify(body));",
+                      "    pm.test('categoryId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                      "}"
                     ]
                   }
                 }
@@ -741,7 +762,13 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                      "pm.collectionVariables.set('productId', pm.response.json().id);"
+                      "const body = pm.response.json();",
+                      "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                      "    pm.collectionVariables.set('productId', body.id);",
+                      "} else {",
+                      "    console.error('Failed to capture productId - response: ' + JSON.stringify(body));",
+                      "    pm.test('productId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                      "}"
                     ]
                   }
                 }
@@ -779,7 +806,13 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                      "pm.collectionVariables.set('orderId', pm.response.json().id);"
+                      "const body = pm.response.json();",
+                      "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                      "    pm.collectionVariables.set('orderId', body.id);",
+                      "} else {",
+                      "    console.error('Failed to capture orderId - response: ' + JSON.stringify(body));",
+                      "    pm.test('orderId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                      "}"
                     ]
                   }
                 }
@@ -822,7 +855,12 @@
                   "const body = pm.response.json();",
                   "pm.test('orderId matches', () => pm.expect(body.orderId).to.eql(parseInt(pm.collectionVariables.get('orderId'))));",
                   "pm.test('productId matches', () => pm.expect(body.productId).to.eql(parseInt(pm.collectionVariables.get('productId'))));",
-                  "pm.collectionVariables.set('orderItemId', body.id);"
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('orderItemId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture orderItemId - response: ' + JSON.stringify(body));",
+                  "    pm.test('orderItemId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
                 ]
               }
             }
@@ -1040,7 +1078,7 @@
     },
     {
       "name": "SCRUM-101 - CartItem CRUD",
-      "description": "As a user, I want to create, view, list, update, and delete CartItem records linked to a Cart and a Product, so that a cart can contain multiple line items instead of a single product/quantity pair.\n\nBranch: brownfield/scrum-101-as-a-user-i-want-to-create-view-list-upd\nBase path: /carts/{cartId}/items\n\nIMPORTANT MANUAL STEP: there is no REST endpoint to create a Cart (no CartController exists in this branch). Before running this collection, open the H2 console at {{baseUrl}}/h2-console (JDBC URL: jdbc:h2:mem:ecommercedb, user: sa, blank password) and run:\n  INSERT INTO carts (id) VALUES (1);\nThe default cartId variable below assumes this row exists.",
+      "description": "As a user, I want to create, view, list, update, and delete CartItem records linked to a Cart and a Product, so that a cart can contain multiple line items instead of a single product/quantity pair.\n\nBranch: brownfield/scrum-101-as-a-user-i-want-to-create-view-list-upd (requires SCRUM-133 merged for Cart creation)\nBase path: /carts/{cartId}/items\n\nCart is now created via POST /carts (see Setup > 0c) - the previously required manual H2-console insert is no longer needed now that SCRUM-133 (Cart CRUD) is implemented.",
       "item": [
         {
           "name": "Setup",
@@ -1054,7 +1092,13 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                      "pm.collectionVariables.set('categoryId', pm.response.json().id);"
+                      "const body = pm.response.json();",
+                      "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                      "    pm.collectionVariables.set('categoryId', body.id);",
+                      "} else {",
+                      "    console.error('Failed to capture categoryId - response: ' + JSON.stringify(body));",
+                      "    pm.test('categoryId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                      "}"
                     ]
                   }
                 }
@@ -1092,7 +1136,13 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                      "pm.collectionVariables.set('productId', pm.response.json().id);"
+                      "const body = pm.response.json();",
+                      "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                      "    pm.collectionVariables.set('productId', body.id);",
+                      "} else {",
+                      "    console.error('Failed to capture productId - response: ' + JSON.stringify(body));",
+                      "    pm.test('productId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                      "}"
                     ]
                   }
                 }
@@ -1122,20 +1172,46 @@
               }
             },
             {
-              "name": "0c. NOTE - Cart must exist (manual H2 insert)",
+              "name": "0c. Create Cart (dependency)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                      "const body = pm.response.json();",
+                      "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                      "    pm.collectionVariables.set('cartId', body.id);",
+                      "} else {",
+                      "    console.error('Failed to capture cartId - response: ' + JSON.stringify(body));",
+                      "    pm.test('cartId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                      "}"
+                    ]
+                  }
+                }
+              ],
               "request": {
-                "method": "GET",
-                "header": [],
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customerName\": \"Jane Doe\",\n  \"status\": \"ACTIVE\"\n}"
+                },
                 "url": {
-                  "raw": "{{baseUrl}}/h2-console",
+                  "raw": "{{baseUrl}}/carts",
                   "host": [
                     "{{baseUrl}}"
                   ],
                   "path": [
-                    "h2-console"
+                    "carts"
                   ]
-                },
-                "description": "No REST endpoint creates Cart records. Open this URL in a browser, connect with JDBC URL jdbc:h2:mem:ecommercedb / user sa / blank password, and run:\nINSERT INTO carts (id) VALUES (1);\nbefore executing the CartItem requests below."
+                }
               }
             }
           ]
@@ -1151,7 +1227,12 @@
                   "pm.test('Status is 201', () => pm.response.to.have.status(201));",
                   "const body = pm.response.json();",
                   "pm.test('productId matches', () => pm.expect(body.productId).to.eql(parseInt(pm.collectionVariables.get('productId'))));",
-                  "pm.collectionVariables.set('cartItemId', body.id);"
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('cartItemId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture cartItemId - response: ' + JSON.stringify(body));",
+                  "    pm.test('cartItemId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
                 ]
               }
             }
@@ -1359,7 +1440,13 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                      "pm.collectionVariables.set('categoryId', pm.response.json().id);"
+                      "const body = pm.response.json();",
+                      "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                      "    pm.collectionVariables.set('categoryId', body.id);",
+                      "} else {",
+                      "    console.error('Failed to capture categoryId - response: ' + JSON.stringify(body));",
+                      "    pm.test('categoryId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                      "}"
                     ]
                   }
                 }
@@ -1397,7 +1484,13 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                      "pm.collectionVariables.set('productId', pm.response.json().id);"
+                      "const body = pm.response.json();",
+                      "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                      "    pm.collectionVariables.set('productId', body.id);",
+                      "} else {",
+                      "    console.error('Failed to capture productId - response: ' + JSON.stringify(body));",
+                      "    pm.test('productId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                      "}"
                     ]
                   }
                 }
@@ -1436,7 +1529,13 @@
                     "exec": [
                       "pm.test('Status is 201', () => pm.response.to.have.status(201));",
                       "pm.test('Default status is PENDING', () => pm.expect(pm.response.json().status).to.eql('PENDING'));",
-                      "pm.collectionVariables.set('pendingOrderId', pm.response.json().id);"
+                      "const body = pm.response.json();",
+                      "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                      "    pm.collectionVariables.set('pendingOrderId', body.id);",
+                      "} else {",
+                      "    console.error('Failed to capture pendingOrderId - response: ' + JSON.stringify(body));",
+                      "    pm.test('pendingOrderId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                      "}"
                     ]
                   }
                 }
@@ -1474,7 +1573,13 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                      "pm.collectionVariables.set('confirmedOrderId', pm.response.json().id);"
+                      "const body = pm.response.json();",
+                      "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                      "    pm.collectionVariables.set('confirmedOrderId', body.id);",
+                      "} else {",
+                      "    console.error('Failed to capture confirmedOrderId - response: ' + JSON.stringify(body));",
+                      "    pm.test('confirmedOrderId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                      "}"
                     ]
                   }
                 }
@@ -1684,6 +1789,307 @@
                   "key": "status",
                   "value": "NOT_A_REAL_STATUS"
                 }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "SCRUM-133 - Cart CRUD",
+      "description": "As a user, I want to create, view, list, update, and delete Cart records (customerName, status), so that shopping carts can be created and managed independently before items are added to them.\n\nBranch: brownfield/scrum-133-as-a-user-i-want-to-create-view-list-upd\nBase path: /carts (note: not under /api, consistent with CartItemController's existing convention)\n\nThis closes the previously-missing Cart creation gap that SCRUM-101 (CartItem CRUD) depended on.",
+      "item": [
+        {
+          "name": "1. Create Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Response has id', () => pm.expect(body.id).to.exist);",
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('cartId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture cartId - response: ' + JSON.stringify(body));",
+                  "    pm.test('cartId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Alice\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/carts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "carts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. Get Cart By Id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('customerName matches', () => pm.expect(pm.response.json().customerName).to.eql('Alice'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/carts/{{cartId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "carts",
+                "{{cartId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. List Carts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/carts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "carts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Update Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('customerName updated', () => pm.expect(pm.response.json().customerName).to.eql('John Smith'));",
+                  "pm.test('status updated', () => pm.expect(pm.response.json().status).to.eql('INACTIVE'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"John Smith\",\n  \"status\": \"INACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/carts/{{cartId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "carts",
+                "{{cartId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. Create Cart - Blank customerName (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/carts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "carts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. Create Cart - Missing status (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Bob\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/carts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "carts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "7. Get Unknown Cart (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/carts/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "carts",
+                "999999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "8. Delete Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/carts/{{cartId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "carts",
+                "{{cartId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "9. Get Deleted Cart (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/carts/{{cartId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "carts",
+                "{{cartId}}"
               ]
             }
           }

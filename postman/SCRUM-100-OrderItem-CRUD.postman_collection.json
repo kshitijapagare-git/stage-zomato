@@ -6,11 +6,26 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8080" },
-    { "key": "categoryId", "value": "" },
-    { "key": "productId", "value": "" },
-    { "key": "orderId", "value": "" },
-    { "key": "orderItemId", "value": "" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "categoryId",
+      "value": ""
+    },
+    {
+      "key": "productId",
+      "value": ""
+    },
+    {
+      "key": "orderId",
+      "value": ""
+    },
+    {
+      "key": "orderItemId",
+      "value": ""
+    }
   ],
   "item": [
     {
@@ -25,16 +40,39 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                  "pm.collectionVariables.set('categoryId', pm.response.json().id);"
+                  "const body = pm.response.json();",
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('categoryId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture categoryId - response: ' + JSON.stringify(body));",
+                  "    pm.test('categoryId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
                 ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Books\",\n  \"description\": \"Book category\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/categories", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories" ] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Books\",\n  \"description\": \"Book category\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            }
           }
         },
         {
@@ -46,19 +84,39 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                  "pm.collectionVariables.set('productId', pm.response.json().id);"
+                  "const body = pm.response.json();",
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('productId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture productId - response: ' + JSON.stringify(body));",
+                  "    pm.test('productId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
                 ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Novel\",\n  \"sku\": \"SKU-BOOK-01\",\n  \"price\": 9.99,\n  \"stock\": 10,\n  \"categoryId\": {{categoryId}},\n  \"description\": \"A novel\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/products", "host": [ "{{baseUrl}}" ], "path": [ "api", "products" ] }
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            }
           }
         },
         {
@@ -70,19 +128,39 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                  "pm.collectionVariables.set('orderId', pm.response.json().id);"
+                  "const body = pm.response.json();",
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('orderId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture orderId - response: ' + JSON.stringify(body));",
+                  "    pm.test('orderId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
                 ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"customerName\": \"Jane Doe\",\n  \"productId\": {{productId}},\n  \"quantity\": 1,\n  \"unitPrice\": 9.99\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/orders", "host": [ "{{baseUrl}}" ], "path": [ "api", "orders" ] }
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
           }
         }
       ]
@@ -99,19 +177,37 @@
               "const body = pm.response.json();",
               "pm.test('orderId matches', () => pm.expect(body.orderId).to.eql(parseInt(pm.collectionVariables.get('orderId'))));",
               "pm.test('productId matches', () => pm.expect(body.productId).to.eql(parseInt(pm.collectionVariables.get('productId'))));",
-              "pm.collectionVariables.set('orderItemId', body.id);"
+              "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+              "    pm.collectionVariables.set('orderItemId', body.id);",
+              "} else {",
+              "    console.error('Failed to capture orderItemId - response: ' + JSON.stringify(body));",
+              "    pm.test('orderItemId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+              "}"
             ]
           }
         }
       ],
       "request": {
         "method": "POST",
-        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"orderId\": {{orderId}},\n  \"productId\": {{productId}},\n  \"quantity\": 2,\n  \"unitPrice\": 9.99\n}"
         },
-        "url": { "raw": "{{baseUrl}}/order-items", "host": [ "{{baseUrl}}" ], "path": [ "order-items" ] }
+        "url": {
+          "raw": "{{baseUrl}}/order-items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "order-items"
+          ]
+        }
       }
     },
     {
@@ -131,7 +227,16 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": { "raw": "{{baseUrl}}/order-items/{{orderItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "order-items", "{{orderItemId}}" ] }
+        "url": {
+          "raw": "{{baseUrl}}/order-items/{{orderItemId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "order-items",
+            "{{orderItemId}}"
+          ]
+        }
       }
     },
     {
@@ -139,13 +244,26 @@
       "event": [
         {
           "listen": "test",
-          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 200', () => pm.response.to.have.status(200));" ] }
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ]
+          }
         }
       ],
       "request": {
         "method": "GET",
         "header": [],
-        "url": { "raw": "{{baseUrl}}/order-items", "host": [ "{{baseUrl}}" ], "path": [ "order-items" ] }
+        "url": {
+          "raw": "{{baseUrl}}/order-items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "order-items"
+          ]
+        }
       }
     },
     {
@@ -164,12 +282,26 @@
       ],
       "request": {
         "method": "PUT",
-        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"orderId\": {{orderId}},\n  \"productId\": {{productId}},\n  \"quantity\": 5,\n  \"unitPrice\": 8.50\n}"
         },
-        "url": { "raw": "{{baseUrl}}/order-items/{{orderItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "order-items", "{{orderItemId}}" ] }
+        "url": {
+          "raw": "{{baseUrl}}/order-items/{{orderItemId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "order-items",
+            "{{orderItemId}}"
+          ]
+        }
       }
     },
     {
@@ -177,17 +309,35 @@
       "event": [
         {
           "listen": "test",
-          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 409', () => pm.response.to.have.status(409));" ] }
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 409', () => pm.response.to.have.status(409));"
+            ]
+          }
         }
       ],
       "request": {
         "method": "POST",
-        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"orderId\": {{orderId}},\n  \"productId\": {{productId}},\n  \"quantity\": 1,\n  \"unitPrice\": 9.99\n}"
         },
-        "url": { "raw": "{{baseUrl}}/order-items", "host": [ "{{baseUrl}}" ], "path": [ "order-items" ] }
+        "url": {
+          "raw": "{{baseUrl}}/order-items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "order-items"
+          ]
+        }
       }
     },
     {
@@ -195,13 +345,27 @@
       "event": [
         {
           "listen": "test",
-          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 204', () => pm.response.to.have.status(204));" ] }
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 204', () => pm.response.to.have.status(204));"
+            ]
+          }
         }
       ],
       "request": {
         "method": "DELETE",
         "header": [],
-        "url": { "raw": "{{baseUrl}}/order-items/{{orderItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "order-items", "{{orderItemId}}" ] }
+        "url": {
+          "raw": "{{baseUrl}}/order-items/{{orderItemId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "order-items",
+            "{{orderItemId}}"
+          ]
+        }
       }
     },
     {
@@ -209,13 +373,27 @@
       "event": [
         {
           "listen": "test",
-          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 404', () => pm.response.to.have.status(404));" ] }
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+            ]
+          }
         }
       ],
       "request": {
         "method": "GET",
         "header": [],
-        "url": { "raw": "{{baseUrl}}/order-items/{{orderItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "order-items", "{{orderItemId}}" ] }
+        "url": {
+          "raw": "{{baseUrl}}/order-items/{{orderItemId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "order-items",
+            "{{orderItemId}}"
+          ]
+        }
       }
     }
   ]

@@ -1,0 +1,176 @@
+{
+  "info": {
+    "_postman_id": "8f3a1e10-7701-4a11-9c77-000000000133",
+    "name": "SCRUM-133 - Cart CRUD",
+    "description": "As a user, I want to create, view, list, update, and delete Cart records (customerName, status), so that shopping carts can be created and managed independently before items are added to them.\n\nBranch: brownfield/scrum-133-as-a-user-i-want-to-create-view-list-upd\nBase path: /carts (note: not under /api, consistent with CartItemController's existing convention)\n\nThis closes the previously-missing Cart creation gap that SCRUM-101 (CartItem CRUD) depended on.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "cartId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Create Cart",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.test('Response has id', () => pm.expect(body.id).to.exist);",
+              "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+              "    pm.collectionVariables.set('cartId', body.id);",
+              "} else {",
+              "    console.error('Failed to capture cartId - response: ' + JSON.stringify(body));",
+              "    pm.test('cartId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerName\": \"Alice\",\n  \"status\": \"ACTIVE\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/carts", "host": [ "{{baseUrl}}" ], "path": [ "carts" ] }
+      }
+    },
+    {
+      "name": "2. Get Cart By Id",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('customerName matches', () => pm.expect(pm.response.json().customerName).to.eql('Alice'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}" ] }
+      }
+    },
+    {
+      "name": "3. List Carts",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 200', () => pm.response.to.have.status(200));" ] }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/carts", "host": [ "{{baseUrl}}" ], "path": [ "carts" ] }
+      }
+    },
+    {
+      "name": "4. Update Cart",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('customerName updated', () => pm.expect(pm.response.json().customerName).to.eql('John Smith'));",
+              "pm.test('status updated', () => pm.expect(pm.response.json().status).to.eql('INACTIVE'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerName\": \"John Smith\",\n  \"status\": \"INACTIVE\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}" ] }
+      }
+    },
+    {
+      "name": "5. Create Cart - Blank customerName (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 400', () => pm.response.to.have.status(400));" ] }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"customerName\": \"\",\n  \"status\": \"ACTIVE\"\n}" },
+        "url": { "raw": "{{baseUrl}}/carts", "host": [ "{{baseUrl}}" ], "path": [ "carts" ] }
+      }
+    },
+    {
+      "name": "6. Create Cart - Missing status (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 400', () => pm.response.to.have.status(400));" ] }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"customerName\": \"Bob\"\n}" },
+        "url": { "raw": "{{baseUrl}}/carts", "host": [ "{{baseUrl}}" ], "path": [ "carts" ] }
+      }
+    },
+    {
+      "name": "7. Get Unknown Cart (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 404', () => pm.response.to.have.status(404));" ] }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/carts/999999", "host": [ "{{baseUrl}}" ], "path": [ "carts", "999999" ] }
+      }
+    },
+    {
+      "name": "8. Delete Cart",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 204', () => pm.response.to.have.status(204));" ] }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}" ] }
+      }
+    },
+    {
+      "name": "9. Get Deleted Cart (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 404', () => pm.response.to.have.status(404));" ] }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}" ] }
+      }
+    }
+  ]
+}

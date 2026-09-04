@@ -2,15 +2,30 @@
   "info": {
     "_postman_id": "8f3a1e10-7701-4a11-9c77-000000000101",
     "name": "SCRUM-101 - CartItem CRUD",
-    "description": "As a user, I want to create, view, list, update, and delete CartItem records linked to a Cart and a Product, so that a cart can contain multiple line items instead of a single product/quantity pair.\n\nBranch: brownfield/scrum-101-as-a-user-i-want-to-create-view-list-upd\nBase path: /carts/{cartId}/items\n\nIMPORTANT MANUAL STEP: there is no REST endpoint to create a Cart (no CartController exists in this branch). Before running this collection, open the H2 console at {{baseUrl}}/h2-console (JDBC URL: jdbc:h2:mem:ecommercedb, user: sa, blank password) and run:\n  INSERT INTO carts (id) VALUES (1);\nThe default cartId variable below assumes this row exists.",
+    "description": "As a user, I want to create, view, list, update, and delete CartItem records linked to a Cart and a Product, so that a cart can contain multiple line items instead of a single product/quantity pair.\n\nBranch: brownfield/scrum-101-as-a-user-i-want-to-create-view-list-upd (requires SCRUM-133 merged for Cart creation)\nBase path: /carts/{cartId}/items\n\nCart is now created via POST /carts (see Setup > 0c) - the previously required manual H2-console insert is no longer needed now that SCRUM-133 (Cart CRUD) is implemented.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8080" },
-    { "key": "categoryId", "value": "" },
-    { "key": "productId", "value": "" },
-    { "key": "cartId", "value": "1", "description": "Must be manually inserted via H2 console first - see collection description" },
-    { "key": "cartItemId", "value": "" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "categoryId",
+      "value": ""
+    },
+    {
+      "key": "productId",
+      "value": ""
+    },
+    {
+      "key": "cartId",
+      "value": ""
+    },
+    {
+      "key": "cartItemId",
+      "value": ""
+    }
   ],
   "item": [
     {
@@ -25,16 +40,39 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                  "pm.collectionVariables.set('categoryId', pm.response.json().id);"
+                  "const body = pm.response.json();",
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('categoryId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture categoryId - response: ' + JSON.stringify(body));",
+                  "    pm.test('categoryId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
                 ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Keyboards\",\n  \"description\": \"Keyboard category\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/categories", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories" ] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Keyboards\",\n  \"description\": \"Keyboard category\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            }
           }
         },
         {
@@ -46,28 +84,82 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                  "pm.collectionVariables.set('productId', pm.response.json().id);"
+                  "const body = pm.response.json();",
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('productId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture productId - response: ' + JSON.stringify(body));",
+                  "    pm.test('productId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
                 ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Keyboard\",\n  \"sku\": \"SKU-KB-01\",\n  \"price\": 49.99,\n  \"stock\": 200,\n  \"categoryId\": {{categoryId}},\n  \"description\": \"A mechanical keyboard\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/products", "host": [ "{{baseUrl}}" ], "path": [ "api", "products" ] }
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            }
           }
         },
         {
-          "name": "0c. NOTE - Cart must exist (manual H2 insert)",
+          "name": "0c. Create Cart (dependency)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('cartId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture cartId - response: ' + JSON.stringify(body));",
+                  "    pm.test('cartId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
-            "method": "GET",
-            "header": [],
-            "url": { "raw": "{{baseUrl}}/h2-console", "host": [ "{{baseUrl}}" ], "path": [ "h2-console" ] },
-            "description": "No REST endpoint creates Cart records. Open this URL in a browser, connect with JDBC URL jdbc:h2:mem:ecommercedb / user sa / blank password, and run:\nINSERT INTO carts (id) VALUES (1);\nbefore executing the CartItem requests below."
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Jane Doe\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/carts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "carts"
+              ]
+            }
           }
         }
       ]
@@ -83,19 +175,39 @@
               "pm.test('Status is 201', () => pm.response.to.have.status(201));",
               "const body = pm.response.json();",
               "pm.test('productId matches', () => pm.expect(body.productId).to.eql(parseInt(pm.collectionVariables.get('productId'))));",
-              "pm.collectionVariables.set('cartItemId', body.id);"
+              "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+              "    pm.collectionVariables.set('cartItemId', body.id);",
+              "} else {",
+              "    console.error('Failed to capture cartItemId - response: ' + JSON.stringify(body));",
+              "    pm.test('cartItemId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+              "}"
             ]
           }
         }
       ],
       "request": {
         "method": "POST",
-        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"cartId\": {{cartId}},\n  \"productId\": {{productId}},\n  \"quantity\": 2\n}"
         },
-        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}/items", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}", "items" ] }
+        "url": {
+          "raw": "{{baseUrl}}/carts/{{cartId}}/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "carts",
+            "{{cartId}}",
+            "items"
+          ]
+        }
       }
     },
     {
@@ -115,7 +227,18 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}/items/{{cartItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}", "items", "{{cartItemId}}" ] }
+        "url": {
+          "raw": "{{baseUrl}}/carts/{{cartId}}/items/{{cartItemId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "carts",
+            "{{cartId}}",
+            "items",
+            "{{cartItemId}}"
+          ]
+        }
       }
     },
     {
@@ -123,13 +246,28 @@
       "event": [
         {
           "listen": "test",
-          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 200', () => pm.response.to.have.status(200));" ] }
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+            ]
+          }
         }
       ],
       "request": {
         "method": "GET",
         "header": [],
-        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}/items", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}", "items" ] }
+        "url": {
+          "raw": "{{baseUrl}}/carts/{{cartId}}/items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "carts",
+            "{{cartId}}",
+            "items"
+          ]
+        }
       }
     },
     {
@@ -148,12 +286,28 @@
       ],
       "request": {
         "method": "PUT",
-        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"cartId\": {{cartId}},\n  \"productId\": {{productId}},\n  \"quantity\": 4\n}"
         },
-        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}/items/{{cartItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}", "items", "{{cartItemId}}" ] }
+        "url": {
+          "raw": "{{baseUrl}}/carts/{{cartId}}/items/{{cartItemId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "carts",
+            "{{cartId}}",
+            "items",
+            "{{cartItemId}}"
+          ]
+        }
       }
     },
     {
@@ -161,13 +315,29 @@
       "event": [
         {
           "listen": "test",
-          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 204', () => pm.response.to.have.status(204));" ] }
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 204', () => pm.response.to.have.status(204));"
+            ]
+          }
         }
       ],
       "request": {
         "method": "DELETE",
         "header": [],
-        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}/items/{{cartItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}", "items", "{{cartItemId}}" ] }
+        "url": {
+          "raw": "{{baseUrl}}/carts/{{cartId}}/items/{{cartItemId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "carts",
+            "{{cartId}}",
+            "items",
+            "{{cartItemId}}"
+          ]
+        }
       }
     },
     {
@@ -175,13 +345,29 @@
       "event": [
         {
           "listen": "test",
-          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 404', () => pm.response.to.have.status(404));" ] }
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+            ]
+          }
         }
       ],
       "request": {
         "method": "GET",
         "header": [],
-        "url": { "raw": "{{baseUrl}}/carts/{{cartId}}/items/{{cartItemId}}", "host": [ "{{baseUrl}}" ], "path": [ "carts", "{{cartId}}", "items", "{{cartItemId}}" ] }
+        "url": {
+          "raw": "{{baseUrl}}/carts/{{cartId}}/items/{{cartItemId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "carts",
+            "{{cartId}}",
+            "items",
+            "{{cartItemId}}"
+          ]
+        }
       }
     }
   ]

@@ -6,11 +6,26 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8080" },
-    { "key": "categoryId", "value": "" },
-    { "key": "productId", "value": "" },
-    { "key": "pendingOrderId", "value": "" },
-    { "key": "confirmedOrderId", "value": "" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "categoryId",
+      "value": ""
+    },
+    {
+      "key": "productId",
+      "value": ""
+    },
+    {
+      "key": "pendingOrderId",
+      "value": ""
+    },
+    {
+      "key": "confirmedOrderId",
+      "value": ""
+    }
   ],
   "item": [
     {
@@ -25,16 +40,39 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                  "pm.collectionVariables.set('categoryId', pm.response.json().id);"
+                  "const body = pm.response.json();",
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('categoryId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture categoryId - response: ' + JSON.stringify(body));",
+                  "    pm.test('categoryId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
                 ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Accessories\",\n  \"description\": \"Misc accessories\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/categories", "host": [ "{{baseUrl}}" ], "path": [ "api", "categories" ] }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Accessories\",\n  \"description\": \"Misc accessories\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            }
           }
         },
         {
@@ -46,19 +84,39 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                  "pm.collectionVariables.set('productId', pm.response.json().id);"
+                  "const body = pm.response.json();",
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('productId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture productId - response: ' + JSON.stringify(body));",
+                  "    pm.test('productId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
                 ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"USB Cable\",\n  \"sku\": \"SKU-USB-01\",\n  \"price\": 5.99,\n  \"stock\": 500,\n  \"categoryId\": {{categoryId}},\n  \"description\": \"A USB cable\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/products", "host": [ "{{baseUrl}}" ], "path": [ "api", "products" ] }
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            }
           }
         },
         {
@@ -71,19 +129,39 @@
                 "exec": [
                   "pm.test('Status is 201', () => pm.response.to.have.status(201));",
                   "pm.test('Default status is PENDING', () => pm.expect(pm.response.json().status).to.eql('PENDING'));",
-                  "pm.collectionVariables.set('pendingOrderId', pm.response.json().id);"
+                  "const body = pm.response.json();",
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('pendingOrderId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture pendingOrderId - response: ' + JSON.stringify(body));",
+                  "    pm.test('pendingOrderId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
                 ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"customerName\": \"Alice\",\n  \"productId\": {{productId}},\n  \"quantity\": 1,\n  \"unitPrice\": 5.99\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/orders", "host": [ "{{baseUrl}}" ], "path": [ "api", "orders" ] }
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
           }
         },
         {
@@ -95,19 +173,39 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                  "pm.collectionVariables.set('confirmedOrderId', pm.response.json().id);"
+                  "const body = pm.response.json();",
+                  "if (pm.response.code >= 200 && pm.response.code < 300 && body && body.id) {",
+                  "    pm.collectionVariables.set('confirmedOrderId', body.id);",
+                  "} else {",
+                  "    console.error('Failed to capture confirmedOrderId - response: ' + JSON.stringify(body));",
+                  "    pm.test('confirmedOrderId captured from response', () => pm.expect.fail('This request did not return a valid id, so downstream requests will fail. Check the response body above.'));",
+                  "}"
                 ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"customerName\": \"Bob\",\n  \"productId\": {{productId}},\n  \"quantity\": 2,\n  \"unitPrice\": 5.99,\n  \"status\": \"CONFIRMED\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/orders", "host": [ "{{baseUrl}}" ], "path": [ "api", "orders" ] }
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
           }
         }
       ]
@@ -133,7 +231,16 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": { "raw": "{{baseUrl}}/api/orders", "host": [ "{{baseUrl}}" ], "path": [ "api", "orders" ] }
+        "url": {
+          "raw": "{{baseUrl}}/api/orders",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "orders"
+          ]
+        }
       }
     },
     {
@@ -161,9 +268,19 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/api/orders?status=PENDING",
-          "host": [ "{{baseUrl}}" ],
-          "path": [ "api", "orders" ],
-          "query": [ { "key": "status", "value": "PENDING" } ]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "orders"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "PENDING"
+            }
+          ]
         }
       }
     },
@@ -191,9 +308,19 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/api/orders?status=CONFIRMED",
-          "host": [ "{{baseUrl}}" ],
-          "path": [ "api", "orders" ],
-          "query": [ { "key": "status", "value": "CONFIRMED" } ]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "orders"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "CONFIRMED"
+            }
+          ]
         }
       }
     },
@@ -216,9 +343,19 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/api/orders?status=CANCELLED",
-          "host": [ "{{baseUrl}}" ],
-          "path": [ "api", "orders" ],
-          "query": [ { "key": "status", "value": "CANCELLED" } ]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "orders"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "CANCELLED"
+            }
+          ]
         }
       }
     },
@@ -227,7 +364,12 @@
       "event": [
         {
           "listen": "test",
-          "script": { "type": "text/javascript", "exec": [ "pm.test('Status is 400', () => pm.response.to.have.status(400));" ] }
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+            ]
+          }
         }
       ],
       "request": {
@@ -235,9 +377,19 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/api/orders?status=NOT_A_REAL_STATUS",
-          "host": [ "{{baseUrl}}" ],
-          "path": [ "api", "orders" ],
-          "query": [ { "key": "status", "value": "NOT_A_REAL_STATUS" } ]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "orders"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "NOT_A_REAL_STATUS"
+            }
+          ]
         }
       }
     }
