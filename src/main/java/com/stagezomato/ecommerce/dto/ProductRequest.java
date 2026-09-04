@@ -13,6 +13,10 @@ public record ProductRequest(
         @NotBlank String sku,
         @NotNull @DecimalMin(value = "0.0", inclusive = true) BigDecimal price,
         @NotNull @Min(0) Integer stock,
-        ProductStatus status
+        ProductStatus status,
+        Long categoryId
 ) {
+    public ProductRequest(String name, String sku, BigDecimal price, Integer stock, ProductStatus status) {
+        this(name, sku, price, stock, status, null);
+    }
 }
